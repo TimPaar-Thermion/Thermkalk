@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Redigera recept{% endblock %}
+{% block content %}
+<h2>Redigera recept</h2>
+<form method="post" action="{{ url_for('edit_pipe', index=pipe_index) }}">
+  <div class="form-group">
+    <label>Rörtyp:</label>
+    <select name="pipe_type" class="form-control small-input">
+      <option value="Rör" {% if pipe.pipe_type == "Rör" %}selected{% endif %}>Rör</option>
+      <option value="Fyrkantig" {% if pipe.pipe_type == "Fyrkantig" %}selected{% endif %}>Fyrkantig</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Längd (m):</label>
+    <input type="number" step="any" name="length" class="form-control small-input"
+           value="{{ pipe.length|default(0) }}">
+  </div>
+  <div class="form-group">
+    <label>Dimension (mm) [för Rör]:</label>
+    <input type="number" step="any" name="dimension" class="form-control small-input"
+           value="{{ pipe.dimension|default('') }}">
+  </div>
+  <div class="form-group">
+    <label>Höjdtillägg (%):</label>
+    <input type="number" step="any" name="hojdtillagg" class="form-control small-input"
+           value="{{ pipe.hojdtillagg|default(0) }}">
+  </div>
+  <div class="form-group">
+    <label>Materialnamn:</label>
+    <input type="text" name="material_name" class="form-control small-input"
+           value="{{ pipe.material|default('') }}">
+  </div>
+  <!-- Övriga fält kan du uppdatera på samma sätt -->
+  <button type="submit" class="btn btn-primary">Spara</button>
+  <a href="{{ url_for('calculate') }}" class="btn btn-secondary">Avbryt</a>
+</form>
+{% endblock %}

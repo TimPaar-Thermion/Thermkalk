@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Redigera anbud{% endblock %}
+{% block content %}
+<h2>Redigera anbud</h2>
+<form method="post" action="{{ url_for('redigera_anbud', bid_id=bid.id) }}">
+    <div class="form-group">
+        <label>Anbudsnamn:</label>
+        <input type="text" name="anbudsnamn" class="form-control" value="{{ bid_data.bid_info.Anbudsnamn }}" required>
+    </div>
+    <div class="form-group">
+        <label>Datum sparat:</label>
+        <input type="date" name="datum" class="form-control" value="{{ bid.datum[:10] }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Spara ändringar</button>
+    <a href="{{ url_for('old_bids') }}" class="btn btn-secondary">Avbryt</a>
+</form>
+{% endblock %}

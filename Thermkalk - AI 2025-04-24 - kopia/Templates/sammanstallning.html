@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Sammanställning</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+    .card {
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .card-header {
+      background-color: #6c757d;
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 0.75rem 1.25rem;
+    }
+    .summary-table {
+      background: #fff;
+      font-size: 0.95rem;
+    }
+    .summary-table thead th {
+      background-color: #e2e6ea;
+      text-align: left;
+      font-weight: 500;
+    }
+    .summary-table tbody td, 
+    .summary-table thead th {
+      vertical-align: middle;
+      border: 1px solid #dee2e6;
+      padding: 0.5rem;
+    }
+    .summary-table .highlight {
+      background-color: #e9f7ef;
+      font-weight: bold;
+    }
+    .takttabell {
+      background: #fff;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .takttabell th, .takttabell td {
+      border: 1px solid #dee2e6;
+      padding: 0.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Sammanställning</h2>
+  
+  <!-- Visa dagens eurokurs -->
+  <div class="alert alert-secondary">
+    Dagens Euro Kurs: <strong>{{ euro_rate }}</strong> SEK
+  </div>
+  
+  <!-- Övergripande anbudsinfo -->
+  <div class="card">
+    <div class="card-header">Anbudsinfo</div>
+    <div class="card-body">
+      <table class="table table-bordered mb-0">
+        <thead>
+          <tr>
+            <th>Anbudsnamn</th>
+            <th>Anbudsnummer</th>
+            <th>Projektledare</th>
+            <th>Datum</th>
+            <th>Kalkylansvarig</th>
+            <th>Avdelning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ bid_info.Anbudsnamn }}</td>
+            <td>{{ bid_info.Anbudsnummer }}</td>
+            <td>{{ bid_info.Projektledare }}</td>
+            <td>{{ datum }}</td>
+            <td>{{ bid_info.Kalkylansvarig }}</td>
+            <td>{{ bid_info.Avdelning }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- Vänster kolumn: Sammanställningstabell -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">Sammanställning</div>
+        <div class="card-body">
+          <form action="{{ url_for('update_sammanstallning') }}" method="post">
+            <table class="table summary-table">
+              <thead>
+                <tr>
+                  <th>Beskrivning</th>
+                  <th>Justering (%)</th>
+                  <th>Kostnad (kr)</th>
+                  <th>Notering</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Materialkostnader -->
+                <tr>
+                  <td>Material Isolering</td>
+                  <td>
+                    <input type="number" class="form-control adjust-material" name="adjust_isolering" value="0" step="0.1">
+                  </td>
+                  <td id="isoleringCostCell">{{ total_isolering|round(0) }} kr</td>
+                  <td id="isoleringDiffCell"></td>
+                </tr>
+                <tr>
+                  <td>Material Ytbeklädnad</td>
+                  <td>
+                    <input type="number" class="form-control adjust-material" name="adjust_ytbekladnad" value="0" step="0.1">
+                  </td>
+                  <td id="ytbekladnadCostCell">{{ total_ytbekladnad_cost|round(0) }} kr</td>
+                  <td id="ytbekladnadDiffCell"></td>
+                </tr>
+                <tr>
+                  <td>Material Tillbehör</td>
+                  <td>
+                    <input type="number" class="form-control adjust-material" name="adjust_tillbehor" value="0" step="0.1">
+                  </td>
+                  <td id="tillbehorCostCell">{{ total_accessories|round(0) }} kr</td>
+                  <td id="tillbehorDiffCell"></td>
+                </tr>
+                <!-- Frakt & Emballage -->
+                <tr>
+                  <td>Frakt &amp; Emballage</td>
+                  <td></td>
+                  <td>
+                    <input type="number" class="form-control" name="frakt_emballage" value="{{ frakt_emballage or 0 }}" step="1">
+                  </td>
+                  <td></td>
+                </tr>
+                <tr class="highlight">
+                  <td><strong>Summa Material</strong></td>
+                  <td></td>
+                  <td id="totalMaterialCell"><strong>{{ (total_material_cost + (frakt_emballage or 0))|round(0) }} kr</strong></td>
+                  <td></td>
+                </tr>
+                
+                <!-- UE Pris och UE Andel -->
+                <tr>
+                  <td>UE Pris (Euro)</td>
+                  <td></td>
+                  <td>
+                    <input type="number" class="form-control" name="ue_pris" value="{{ ue_pris or 0 }}" step="1">
+                  </td>
+                  <td>
+                    Euro Kurs: <input type="number" class="form-control" name="euro_rate" value="{{ euro_rate }}" step="0.01">
+                  </td>
+                </tr>
+                <tr>
+                  <td>UE Andel</td>
+                  <td>
+                    Tillverkning: <input type="number" class="form-control" name="ue_andel_tillverkning" value="{{ ue_andel_tillverkning or 0 }}" step="0.1"><br>
+                    Montering: <input type="number" class="form-control" name="ue_andel_montage" value="{{ ue_andel_montage or 0 }}" step="0.1">
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                
+                <!-- Nya rader under UE Andel -->
+                <tr>
+                  <td>Timmar från kalkyl MABI</td>
+                  <td></td>
+                  <td><input type="number" class="form-control" name="timmar_kalkyl_mabi" value="{{ timmar_kalkyl_mabi or 0 }}" step="0.1"></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Timmar från kalkyl tillverkning MABI</td>
+                  <td></td>
+                  <td><input type="number" class="form-control" name="timmar_kalkyl_tillverkning" value="{{ timmar_kalkyl_tillverkning or 0 }}" step="0.1"></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Timmar montage exkl tillägg (UE)</td>
+                  <td></td>
+                  <td><input type="number" class="form-control" name="timmar_montage_exkl_ue" value="{{ timmar_montage_exkl_ue or 0 }}" step="0.1"></td>
+                  <td></td>
+                </tr>
+  
+                <!-- Arbetstid -->
+                <tr>
+                  <td>Beräknad Arbetstid (från kalkyler)</td>
+                  <td></td>
+                  <td>{{ total_work_time_calc|round(2) }} t</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Multiplikator (%)</td>
+                  <td>
+                    <input type="number" class="form-control" name="multiplikator" value="{{ multiplikator }}" step="0.1">
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Höjdtillägg (%)</td>
+                  <td>
+                    <input type="number" class="form-control" name="hoejdtillaeg" value="{{ hoejdtillaeg }}" step="0.1">
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Timitid (t)</td>
+                  <td>
+                    <input type="number" class="form-control" name="timitid" value="{{ timtid }}" step="0.1">
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="highlight">
+                  <td><strong>Total Arbetstid</strong></td>
+                  <td></td>
+                  <td><strong>{{ total_work_time|round(2) }} t</strong></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Timlön (kr/timme)</td>
+                  <td>
+                    <input type="number" class="form-control" name="hourly_wage" value="{{ hourly_wage }}" step="1">
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Lön + Sociala kostnader (timkostnad)</td>
+                  <td></td>
+                  <td id="laborCostPerHour">{{ labor_cost_per_hour|round(2) }} kr/timme</td>
+                  <td></td>
+                </tr>
+                <tr class="highlight">
+                  <td><strong>Total Arbetskostnad (Arbetstid * timkostnad)</strong></td>
+                  <td></td>
+                  <td id="totalLaborCost">{{ total_labor_cost|round(0) }} kr</td>
+                  <td></td>
+                </tr>
+                
+                <!-- Övriga kostnadsposter under Diverse & Servicebil -->
+                <tr class="highlight">
+                  <td>Diverse Förbrukning (%)</td>
+                  <td>
+                    <input type="number" class="form-control" name="diverse_value" value="{{ diverse_value or 1.5 }}" step="0.1">
+                  </td>
+                  <td id="diverseCostCell">{{ (total_material_cost * (diverse_value or 1.5) / 100)|round(0) }} kr</td>
+                  <td id="diverseDiffCell"></td>
+                </tr>
+                <tr class="highlight">
+                  <td>Servicebil (kr/dag)</td>
+                  <td>
+                    <input type="number" class="form-control" name="servicebil_days" value="{{ servicebil_days }}" step="1">
+                  </td>
+                  <td id="servicebilCostCell">{{ servicebil_cost|round(0) }} kr</td>
+                  <td id="servicebilNoteringCell"></td>
+                </tr>
+                <!-- Nya rader under Servicebil (alla beräknas som (inmatat värde) x (total arbetstid/8)) -->
+                <tr>
+                  <td>Logi (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="logi_cost" value="{{ logi_cost or 0 }}" step="1"></td>
+                  <td id="logiCostCell">0 kr</td>
+                  <td id="logiNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Traktamente (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="traktamente_cost" value="{{ traktamente_cost or 0 }}" step="1"></td>
+                  <td id="traktamenteCostCell">0 kr</td>
+                  <td id="traktamenteNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Dagliga resor (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="dagliga_resor_cost" value="{{ dagliga_resor_cost or 0 }}" step="1"></td>
+                  <td id="dagligaResorCostCell">0 kr</td>
+                  <td id="dagligaResorNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Parkering/biljetter (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="parkering_cost" value="{{ parkering_cost or 0 }}" step="1"></td>
+                  <td id="parkeringCostCell">0 kr</td>
+                  <td id="parkeringNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Sophantering (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="sophantering_cost" value="{{ sophantering_cost or 0 }}" step="1"></td>
+                  <td id="sophanteringCostCell">0 kr</td>
+                  <td id="sophanteringNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Bodkostnad (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="bodkostnad_cost" value="{{ bodkostnad_cost or 0 }}" step="1"></td>
+                  <td id="bodkostnadCostCell">0 kr</td>
+                  <td id="bodkostnadNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Ställningar/lift (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="stallningar_cost" value="{{ stallningar_cost or 0 }}" step="1"></td>
+                  <td id="stallningarCostCell">0 kr</td>
+                  <td id="stallningarNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Kran (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="kran_cost" value="{{ kran_cost or 0 }}" step="1"></td>
+                  <td id="kranCostCell">0 kr</td>
+                  <td id="kranNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Övrig hyra (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="ovrig_hyra_cost" value="{{ ovrig_hyra_cost or 0 }}" step="1"></td>
+                  <td id="ovrigHyraCostCell">0 kr</td>
+                  <td id="ovrigHyraNoteringCell"></td>
+                </tr>
+                <tr>
+                  <td>Risk (kr/dag)</td>
+                  <td><input type="number" class="form-control" name="risk_cost" value="{{ risk_cost or 0 }}" step="1"></td>
+                  <td id="riskCostCell">0 kr</td>
+                  <td id="riskNoteringCell"></td>
+                </tr>
+                
+                <!-- Sammanfattning av de extra kostnadsposterna läggs in i Total Arbetskostnad -->
+                <tr class="highlight">
+                  <td><strong>Total Arbetskostnad</strong></td>
+                  <td></td>
+                  <td id="totalWorkCost">{{ total_work_cost|round(0) }} kr</td>
+                  <td></td>
+                </tr>
+                
+                <!-- Täckningsgrad och slutpris -->
+                <tr>
+                  <td>Täckningsgrad (%)</td>
+                  <td><input type="number" class="form-control" name="coverage_percentage" value="{{ coverage_percentage }}" step="1"></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="highlight">
+                  <td><strong>Slutpris</strong></td>
+                  <td></td>
+                  <td id="finalPrice">{{ final_price|round(0) }} kr</td>
+                  <td></td>
+                </tr>
+                
+                <!-- Kalkyl per meter och takttider -->
+                <tr>
+                  <td><strong>Total Meter</strong></td>
+                  <td></td>
+                  <td id="totalMeterCell">{{ total_length|round(2) }} m</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td><strong>Takt (m/timme)</strong></td>
+                  <td></td>
+                  <td id="taktCell">-</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td><strong>Slutpris per Meter</strong></td>
+                  <td></td>
+                  <td id="finalPricePerMeter">{{ final_price_per_meter|round(2) }} kr/m</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary">Spara Ändringar</button>
+              <a href="{{ url_for('calculate') }}" class="btn btn-secondary ml-2">Tillbaka</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Höger kolumn: Takttider-tabell -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">Takttider</div>
+        <div class="card-body">
+          <table class="table takttabell">
+            <thead>
+              <tr>
+                <th>Del</th>
+                <th>M/M2</th>
+                <th>Takt</th>
+                <th>Timmar</th>
+              </tr>
+            </thead>
+            <tbody id="takttiderBody">
+              {% for i in range(10) %}
+              <tr>
+                <td><input type="text" class="form-control" name="takttider_del[]" value=""></td>
+                <td><input type="number" step="0.01" class="form-control takttider_mm2" name="takttider_mm2[]" value="0"></td>
+                <td><input type="number" step="0.01" class="form-control takttider_takt" name="takttider_takt[]" value="0"></td>
+                <td class="takttider_timmar">0</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Summa Timmar</th>
+                <th id="takttotalTimmar">0</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript för dynamisk uppdatering -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function updateCalculations() {
+  // Materialjusteringar
+  var baseIsolering = parseFloat("{{ total_isolering|round(0) }}") || 0;
+  var adjustIsolering = parseFloat($('input[name="adjust_isolering"]').val()) || 0;
+  var newIsolering = baseIsolering * (1 - adjustIsolering / 100);
+  var diffIsolering = newIsolering - baseIsolering;
+  $('#isoleringCostCell').text(Math.round(newIsolering) + " kr");
+  $('#isoleringDiffCell').text(diffIsolering >= 0 ? "(+" + Math.round(diffIsolering) + " kr)" : "(" + Math.round(diffIsolering) + " kr)");
+  
+  var baseYt = parseFloat("{{ total_ytbekladnad_cost|round(0) }}") || 0;
+  var adjustYt = parseFloat($('input[name="adjust_ytbekladnad"]').val()) || 0;
+  var newYt = baseYt * (1 - adjustYt / 100);
+  var diffYt = newYt - baseYt;
+  $('#ytbekladnadCostCell').text(Math.round(newYt) + " kr");
+  $('#ytbekladnadDiffCell').text(diffYt >= 0 ? "(+" + Math.round(diffYt) + " kr)" : "(" + Math.round(diffYt) + " kr)");
+  
+  var baseTillbehor = parseFloat("{{ total_accessories|round(0) }}") || 0;
+  var adjustTillbehor = parseFloat($('input[name="adjust_tillbehor"]').val()) || 0;
+  var newTillbehor = baseTillbehor * (1 - adjustTillbehor / 100);
+  var diffTillbehor = newTillbehor - baseTillbehor;
+  $('#tillbehorCostCell').text(Math.round(newTillbehor) + " kr");
+  $('#tillbehorDiffCell').text(diffTillbehor >= 0 ? "(+" + Math.round(diffTillbehor) + " kr)" : "(" + Math.round(diffTillbehor) + " kr)");
+  
+  // Frakt & Emballage
+  var fraktEmballage = parseFloat($('input[name="frakt_emballage"]').val()) || 0;
+  
+  // Uppdatera summa material (inkludera Frakt & Emballage)
+  var newTotalMaterial = newIsolering + newYt + newTillbehor + fraktEmballage;
+  $('#totalMaterialCell').text(Math.round(newTotalMaterial) + " kr");
+  
+  // Täckningsgrad och slutpris
+  var coverage = parseFloat($('input[name="coverage_percentage"]').val()) || 0;
+  var baseWorkCost = parseFloat("{{ total_work_cost|round(0) }}") || 0;
+  
+  // Uppdatera de extra kostnaderna (per dag) och beräkna total för varje
+  var days = (parseFloat("{{ total_work_time_calc|round(2) }}") || 0) * (parseFloat($('input[name="multiplikator"]').val())/100) * (1 + parseFloat($('input[name="hoejdtillaeg"]').val())/100) + parseFloat($('input[name="timitid"]').val()) || 0;
+  days = days / 8;
+  
+  var logiCostInput = parseFloat($('input[name="logi_cost"]').val()) || 0;
+  var logiTotal = logiCostInput * days;
+  $('#logiCostCell').text(Math.round(logiTotal) + " kr");
+  $('#logiNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var traktamenteCostInput = parseFloat($('input[name="traktamente_cost"]').val()) || 0;
+  var traktamenteTotal = traktamenteCostInput * days;
+  $('#traktamenteCostCell').text(Math.round(traktamenteTotal) + " kr");
+  $('#traktamenteNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var dagligaResorCostInput = parseFloat($('input[name="dagliga_resor_cost"]').val()) || 0;
+  var dagligaResorTotal = dagligaResorCostInput * days;
+  $('#dagligaResorCostCell').text(Math.round(dagligaResorTotal) + " kr");
+  $('#dagligaResorNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var parkeringCostInput = parseFloat($('input[name="parkering_cost"]').val()) || 0;
+  var parkeringTotal = parkeringCostInput * days;
+  $('#parkeringCostCell').text(Math.round(parkeringTotal) + " kr");
+  $('#parkeringNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var sophanteringCostInput = parseFloat($('input[name="sophantering_cost"]').val()) || 0;
+  var sophanteringTotal = sophanteringCostInput * days;
+  $('#sophanteringCostCell').text(Math.round(sophanteringTotal) + " kr");
+  $('#sophanteringNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var bodkostnadCostInput = parseFloat($('input[name="bodkostnad_cost"]').val()) || 0;
+  var bodkostnadTotal = bodkostnadCostInput * days;
+  $('#bodkostnadCostCell').text(Math.round(bodkostnadTotal) + " kr");
+  $('#bodkostnadNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var stallningarCostInput = parseFloat($('input[name="stallningar_cost"]').val()) || 0;
+  var stallningarTotal = stallningarCostInput * days;
+  $('#stallningarCostCell').text(Math.round(stallningarTotal) + " kr");
+  $('#stallningarNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var kranCostInput = parseFloat($('input[name="kran_cost"]').val()) || 0;
+  var kranTotal = kranCostInput * days;
+  $('#kranCostCell').text(Math.round(kranTotal) + " kr");
+  $('#kranNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var ovrigHyraCostInput = parseFloat($('input[name="ovrig_hyra_cost"]').val()) || 0;
+  var ovrigHyraTotal = ovrigHyraCostInput * days;
+  $('#ovrigHyraCostCell').text(Math.round(ovrigHyraTotal) + " kr");
+  $('#ovrigHyraNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  var riskCostInput = parseFloat($('input[name="risk_cost"]').val()) || 0;
+  var riskTotal = riskCostInput * days;
+  $('#riskCostCell').text(Math.round(riskTotal) + " kr");
+  $('#riskNoteringCell').text("Dagar: " + days.toFixed(2));
+  
+  // Summera alla extra kostnader
+  var extraCosts = logiTotal + traktamenteTotal + dagligaResorTotal + parkeringTotal + sophanteringTotal + bodkostnadTotal + stallningarTotal + kranTotal + ovrigHyraTotal + riskTotal;
+  
+  // Uppdatera total arbetskostnad
+  var newTotalWorkCost = baseWorkCost + extraCosts;
+  $('#totalWorkCost').text(Math.round(newTotalWorkCost) + " kr");
+  
+  // Uppdatera slutpris
+  var finalPrice = (newTotalMaterial + newTotalWorkCost) / (1 - (coverage / 100));
+  $('#finalPrice').text(Math.round(finalPrice) + " kr");
+  
+  // Total meter
+  var totalLength = parseFloat("{{ total_length }}") || 0;
+  $('#totalMeterCell').text(totalLength.toFixed(2) + " m");
+  
+// Beräkna total arbetstid med multiplikator, höjdtillägg och timtid
+var baseWorkTime = parseFloat("{{ total_work_time_calc|round(2) }}") || 0;
+var multiplikator = parseFloat($('input[name="multiplikator"]').val()) || 100;
+var factor = multiplikator / 100;
+var hoejdtillaeg = parseFloat($('input[name="hoejdtillaeg"]').val()) || 0;
+var timtid = parseFloat($('input[name="timitid"]').val()) || 0;
+var newTotalWorkTime = baseWorkTime * factor * (1 + hoejdtillaeg/100) + timtid;
+
+// Uppdatera takt = total meter / total arbetstid
+var takt = newTotalWorkTime > 0 ? totalLength / newTotalWorkTime : 0;
+$('#taktCell').text(takt.toFixed(2) + " m/timme");
+
+// Uppdatera slutpris per meter
+if(totalLength > 0) {
+  var finalPricePerMeter = finalPrice / totalLength;
+  $('#finalPricePerMeter').text(finalPricePerMeter.toFixed(2) + " kr/m");
+}
+
+// Uppdatera Servicebil-notering: antal dagar = total arbetstid / 8, avrundat uppåt
+var servicebilDaysCalc = Math.ceil(newTotalWorkTime / 8);
+$('#servicebilNoteringCell').text("Dagar: " + servicebilDaysCalc);
+
+}
+
+function updateTakttider() {
+  var sumTimmar = 0;
+  $('#takttiderBody tr').each(function(){
+    var mm2 = parseFloat($(this).find('.takttider_mm2').val()) || 0;
+    var takt = parseFloat($(this).find('.takttider_takt').val()) || 0;
+    var timmar = takt !== 0 ? mm2 / takt : 0;
+    $(this).find('.takttider_timmar').text(timmar.toFixed(2));
+    sumTimmar += timmar;
+  });
+  $('#takttotalTimmar').text(sumTimmar.toFixed(2));
+}
+
+$(document).ready(function(){
+  $('.adjust-material, input[name="coverage_percentage"], input[name="hourly_wage"], input[name="extra_work_hours"], input[name="multiplikator"], input[name="hoejdtillaeg"], input[name="timitid"], input[name="ue_pris"], input[name="servicebil_days"], input[name="frakt_emballage"], input[name="logi_cost"], input[name="traktamente_cost"], input[name="dagliga_resor_cost"], input[name="parkering_cost"], input[name="sophantering_cost"], input[name="bodkostnad_cost"], input[name="stallningar_cost"], input[name="kran_cost"], input[name="ovrig_hyra_cost"], input[name="risk_cost"]').on('input', function(){
+    updateCalculations();
+  });
+  updateCalculations();
+  
+  $('#takttiderBody').on('input', '.takttider_mm2, .takttider_takt', function(){
+    updateTakttider();
+  });
+  updateTakttider();
+});
+</script>
+</body>
+</html>

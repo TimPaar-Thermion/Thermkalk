@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block title %}Kunder{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Kundlista</h2>
+
+    <!-- Sökfält -->
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Sök kund...">
+
+    <!-- Gör rubrikerna fasta vid scrollning -->
+    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary" style="position: sticky; top: 0; background: white; z-index: 10;">
+                <tr>
+                    <th>Kundnr</th>
+                    <th>Kund</th>
+                    <th>Kundtyp</th>
+                    <th>Privatperson</th>
+                    <th>Valuta</th>
+                    <th>Person/Orgnr</th>
+                    <th>Namn</th>
+                    <th>Adressrad 1</th>
+                    <th>Adressrad 2</th>
+                    <th>Postnr</th>
+                    <th>Ort</th>
+                    <th>Land</th>
+                    <th>E-post</th>
+                    <th>Webbadress</th>
+                    <th>Telefon</th>
+                    <th>Mobiltelefon</th>
+                    <th>Fax</th>
+                    <th>Fakturatyp</th>
+                    <th>Fakturaspråk</th>
+                    <th>Faktura e-post</th>
+                    <th>Ramavtal</th>
+                    <th>Elektronisk adress</th>
+                    <th>Notering</th>
+                    <th>Entreprenadbolag</th>
+                    <th>Ingen moms</th>
+                    <th>Leverantör nr</th>
+                    <th>Betalningsvillkor</th>
+                    <th>IBAN</th>
+                    <th>SWIFT/BIC</th>
+                    <th>Bank</th>
+                    <th>Bankkonto</th>
+                    <th>Clearing nr</th>
+                    <th>EAN-kod</th>
+                    <th>VAT-nummer</th>
+                    <th>Landskod</th>
+                    <th>Fastighetsbeteckning</th>
+                    <th>Brf org nr</th>
+                    <th>Lägenhet nr</th>
+                    <th>Inaktiv</th>
+                </tr>
+            </thead>
+            <tbody id="customerTable">
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.Kundnr }}</td>
+                    <td>{{ customer.Kund }}</td>
+                    <td>{{ customer.Kundtyp }}</td>
+                    <td>{{ customer.Privatperson }}</td>
+                    <td>{{ customer.Valuta }}</td>
+                    <td>{{ customer["Person/Orgnr"] }}</td>
+                    <td>{{ customer.Namn }}</td>
+                    <td>{{ customer["Adressrad 1"] }}</td>
+                    <td>{{ customer["Adressrad 2"] }}</td>
+                    <td>{{ customer.Postnr }}</td>
+                    <td>{{ customer.Ort }}</td>
+                    <td>{{ customer.Land }}</td>
+                    <td>{{ customer["E-post"] }}</td>
+                    <td>{{ customer.Webbadress }}</td>
+                    <td>{{ customer.Telefon }}</td>
+                    <td>{{ customer.Mobiltelefon }}</td>
+                    <td>{{ customer.Fax }}</td>
+                    <td>{{ customer.Fakturatyp }}</td>
+                    <td>{{ customer.Fakturaspråk }}</td>
+                    <td>{{ customer["Faktura e-post"] }}</td>
+                    <td>{{ customer.Ramavtal }}</td>
+                    <td>{{ customer["Elektronisk adress"] }}</td>
+                    <td>{{ customer.Notering }}</td>
+                    <td>{{ customer.Entreprenadbolag }}</td>
+                    <td>{{ customer["Ingen moms"] }}</td>
+                    <td>{{ customer["Leverantör nr"] }}</td>
+                    <td>{{ customer.Betalningsvillkor }}</td>
+                    <td>{{ customer.IBAN }}</td>
+                    <td>{{ customer["SWIFT/BIC"] }}</td>
+                    <td>{{ customer.Bank }}</td>
+                    <td>{{ customer.Bankkonto }}</td>
+                    <td>{{ customer["Clearing nr"] }}</td>
+                    <td>{{ customer["EAN-kod"] }}</td>
+                    <td>{{ customer["VAT-nummer"] }}</td>
+                    <td>{{ customer.Landskod }}</td>
+                    <td>{{ customer.Fastighetsbeteckning }}</td>
+                    <td>{{ customer["Brf org nr"] }}</td>
+                    <td>{{ customer["Lägenhet nr"] }}</td>
+                    <td>{{ customer.Inaktiv }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tillbaka-knapp längst ner -->
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Tillbaka</a>
+</div>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function() {
+    let filter = this.value.toUpperCase();
+    let rows = document.querySelectorAll("#customerTable tr");
+
+    rows.forEach(row => {
+        let text = row.textContent.toUpperCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    });
+});
+</script>
+
+{% endblock %}

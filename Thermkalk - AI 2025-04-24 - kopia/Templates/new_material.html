@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}Nytt material{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Lägg till nytt material</h2>
+  <form method="post" action="{{ url_for('new_material') }}">
+    <div class="form-group">
+      <label>Artikelnummer:</label>
+      <input type="text" name="artikelnr" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Artikelnamn:</label>
+      <input type="text" name="artikelnamn" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Materialtyp:</label>
+      <input type="text" name="materialtyp" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Diameter rörskål:</label>
+      <input type="text" name="diameter" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Isoleringstjocklek:</label>
+      <input type="number" step="any" name="isoleringstjocklek" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Leverantör:</label>
+      <input type="text" name="leverantör" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Enhet:</label>
+      <input type="text" name="enhet" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Kostnad per enhet (kr):</label>
+      <input type="number" step="any" name="kostnad" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Löpmeter:</label>
+      <input type="number" step="any" name="lopmeter" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Kvm:</label>
+      <input type="number" step="any" name="kvm" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Lägg till material</button>
+    <a href="{{ url_for('show_materials') }}" class="btn btn-secondary">Tillbaka</a>
+  </form>
+</div>
+{% endblock %}

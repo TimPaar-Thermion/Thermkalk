@@ -1,0 +1,448 @@
+{% extends "layout.html" %}
+{% block title %}Bygg ditt recept{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  {% if session.bid_info %}
+    <div class="mb-3">
+      <p><strong>Anbudsnamn:</strong> {{ session.bid_info.Anbudsnamn }}</p>
+      <p><strong>Anbudsnummer:</strong> {{ session.bid_info.Anbudsnummer }}</p>
+      <p><strong>Projektledare:</strong> {{ session.bid_info.Projektledare }}</p>
+      <p><strong>Kund:</strong> {{ session.bid_info.Kund }}</p>
+      <p><strong>Kalkylansvarig:</strong> {{ session.bid_info.Kalkylansvarig }}</p>
+      <p><strong>Projekt typ:</strong> {{ session.bid_info.projekt_typ }}</p>
+    </div>
+  {% endif %}
+</div>
+
+  <!-- Formulär för "Bygg ditt recept" -->
+  <h2>Bygg ditt recept</h2>
+  <form method="post" action="{{ url_for('calculate') }}">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label>Rörtyp:</label>
+          <select name="pipe_type" class="form-control">
+            <option value="Rör">Rör</option>
+            <option value="Fyrkantig">Fyrkantig</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Längd (m):</label>
+          <input type="number" step="any" name="length" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Dimension (mm):</label>
+          <input type="number" step="any" name="dimension" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Material typ:</label>
+          <select id="materialType" class="form-control">
+            <option value="">-- Välj material typ --</option>
+            {% for material_typ in material_types if material_typ not in ["Tillbehör", "Aluminiumplåt", "Stålplåt"] %}
+            <option value="{{ material_typ }}">{{ material_typ }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Välj isolering:</label>
+          <select name="material" id="materialSelect" class="form-control" required>
+            <option value="">-- Välj material --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ytbeklädnad:</label>
+          <select name="ytbekladnad" class="form-control">
+            <option value="">-- Välj ytbeklädnad --</option>
+            {% for key, data in materialer.items() %}
+              {% if "aluminium" in data["artikelnamn"].lower() %}
+                <option value="{{ key }}">{{ data["artikelnamn"] }} - {{ data["kostnad"] }} SEK</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Höjdtillägg (%):</label>
+          <input type="number" step="any" name="hojdtillagg" class="form-control">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label>Böjar (antal):</label>
+          <input type="number" name="bojar" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label>Avstick (antal):</label>
+          <input type="number" name="avstick" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label>Ventilkåpor (antal):</label>
+          <input type="number" name="ventilkapor" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label>Flänskåpor (antal):</label>
+          <input type="number" name="flanskapa" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label>Rörstöd (antal):</label>
+          <input type="number" name="rorstod" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label class="folie-label">
+            <input type="checkbox" name="folie" value="yes" class="folie-checkbox"> Folie
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="folie-label">
+            <input type="checkbox" name="band" value="yes" class="folie-checkbox"> Band
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-center">
+      <button type="submit" class="btn btn-primary">Lägg till recept</button>
+    </div>
+  </form>
+
+  <hr class="my-4">
+
+  <!-- Formulär för översikten -->
+  <h2 class="text-center">Översikt</h2>
+  {% if pipe_list %}
+  <form method="post" action="{{ url_for('update_overview') }}">
+    <table id="overviewTable" class="table table-bordered" style="margin: 0 auto;">
+      <thead>
+        <tr>
+          <th>Nr.</th>
+          <th>Objekt</th>
+          <th>Sektion</th>
+          <th>Material</th>
+          <th>Ytbeklädnad</th>
+          <th>Dimension (mm)</th>
+          <th>Längd (m)</th>
+          <th>Böjar</th>
+          <th>Avstick</th>
+          <th>Ventilkåpor</th>
+          <th>Flänskåpor</th>
+          <th>Rörstöd</th>
+          <th>Höjdtillägg (%)</th>
+          <th>Folie</th>
+          <th>Band</th>
+          <th>Distansjärn</th>
+          <th>Distansring</th>
+          <th>Ta bort</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pipe in pipe_list %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <!-- Ny kolumn: Objekt -->
+          <td>
+            <input type="text" name="objekt_{{ loop.index0 }}" value="{{ pipe.objekt|default('') }}" class="form-control" />
+          </td>
+          <!-- Ny kolumn: Sektion -->
+          <td>
+            <input type="text" name="sektion_{{ loop.index0 }}" value="{{ pipe.sektion|default('') }}" class="form-control" />
+          </td>
+          <td>{{ pipe.material }}</td>
+          <td>
+            {% if pipe.ytbekladnad_key %}
+              {% if materialer[pipe.ytbekladnad_key] is defined %}
+                {{ materialer[pipe.ytbekladnad_key].artikelnamn }}
+              {% else %}
+                {{ pipe.ytbekladnad_key }}
+              {% endif %}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td data-length="{{ pipe.length|float(default=0)|round(1) }}">
+  {{ pipe.length|float(default=0)|round(1) }}
+</td>
+          <!-- Längd med 1 decimal -->
+          <td data-length="{{ pipe.length|float(default=0)|round(1) }}">{{ pipe.length|float(default=0)|round(1) }}</td>
+          <!-- Övriga värden utan decimaler -->
+          <td>{{ pipe.bojar|float(default=0)|round(0)|int }}</td>
+          <td>{{ pipe.avstick|float(default=0)|round(0)|int }}</td>
+          <td>{{ pipe.ventilkapor|float(default=0)|round(0)|int }}</td>
+          <td>{{ pipe.flanskapa|float(default=0)|round(0)|int }}</td>
+          <td>{{ pipe.rorstod|float(default=0)|round(0)|int }}</td>
+          <td>{{ pipe.hojdtillagg|float(default=0)|round(0)|int }}</td>
+          <td>{{ "Ja" if pipe.folie else "Nej" }}</td>
+          <td>{{ "Ja" if pipe.band else "Nej" }}</td>
+          <td>
+            {% if pipe.distansjarn_material or pipe.distansjarn_procent %}
+              {{ pipe.distansjarn_material|default("") }} {{ pipe.distansjarn_procent|default("") }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ pipe.distansring|default("-") }}</td>
+          <td>
+            <form method="post" action="{{ url_for('remove_pipe', index=loop.index0) }}" 
+                  onsubmit="return confirm('Är du säker på att du vill ta bort detta recept?');" style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm" style="width:70px; min-width:0 !important;">Ta bort</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+<tfoot>
+  {% set total_length = 0 %}
+  {% set total_bojar = 0 %}
+  {% set total_avstick = 0 %}
+  {% set total_ventilkapor = 0 %}
+  {% set total_flanskapa = 0 %}
+  {% set total_rorstod = 0 %}
+  {% for pipe in pipe_list %}
+    {% set total_length = total_length + (pipe.length|float(default=0)) %}
+    {% set total_bojar = total_bojar + (pipe.bojar|float(default=0)) %}
+    {% set total_avstick = total_avstick + (pipe.avstick|float(default=0)) %}
+    {% set total_ventilkapor = total_ventilkapor + (pipe.ventilkapor|float(default=0)) %}
+    {% set total_flanskapa = total_flanskapa + (pipe.flanskapa|float(default=0)) %}
+    {% set total_rorstod = total_rorstod + (pipe.rorstod|float(default=0)) %}
+  {% endfor %}
+  <tr>
+    <td colspan="6" style="text-align: right;"><strong>Summa:</strong></td>
+    <td id="sumLength">{{ total_length|round(1) }}</td>
+    <td id="sumBojar">{{ total_bojar|round(0)|int }}</td>
+    <td id="sumAvstick">{{ total_avstick|round(0)|int }}</td>
+    <td id="sumVentilkapor">{{ total_ventilkapor|round(0)|int }}</td>
+    <td id="sumFlanskapa">{{ total_flanskapa|round(0)|int }}</td>
+    <td id="sumRorstod">{{ total_rorstod|round(0)|int }}</td>
+    <td colspan="6"></td>
+  </tr>
+</tfoot>
+
+    </table>
+    <!-- Knappar under översikten, centrerade -->
+    <div class="d-flex justify-content-center">
+      <a href="{{ url_for('materialspecifikation') }}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;">Materialspecifikation</a>
+      <a href="{{ url_for('detailed_calculations') }}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;">Beräkningar</a>
+      <a href="{{ url_for('sammanstallning') }}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;">Sammanställning</a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem;">Spara ändringar</button>
+    </div>
+  </form>
+  <!-- Separat knapp för att spara hela anbudet och stänga -->
+  <div class="d-flex justify-content-center mt-3">
+    <form method="post" action="{{ url_for('save_bid') }}">
+      <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem;">Spara och stäng anbud</button>
+    </form>
+  </div>
+  {% else %}
+    <p>Inga recept har lagts till än.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Skript för att visa/dölj fält beroende på rörtyp -->
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  var pipeTypeSelect = document.querySelector("select[name='pipe_type']");
+  var dimensionDiv = document.getElementById("dimension-div");
+  var heightDiv = document.getElementById("height-div");
+  var widthDiv = document.getElementById("width-div");
+
+  function toggleFields() {
+    if (pipeTypeSelect.value === "Rör") {
+      dimensionDiv.style.display = "block";
+      heightDiv.style.display = "none";
+      widthDiv.style.display = "none";
+    } else {
+      dimensionDiv.style.display = "none";
+      heightDiv.style.display = "block";
+      widthDiv.style.display = "block";
+    }
+  }
+  
+  toggleFields();
+  pipeTypeSelect.addEventListener("change", toggleFields);
+});
+</script>
+
+<script>
+function handlePdfPrint() {
+  const choice = document.querySelector('input[name="pdfChoice"]:checked');
+  if (!choice) {
+    alert("Välj ett dokument först!");
+    return;
+  }
+  $('#pdfModal').modal('hide');
+  if (choice.value === "materialspec") {
+    window.open("{{ url_for('materialspecifikation') }}", "_blank");
+  } else if (choice.value === "sammanst") {
+    window.open("{{ url_for('sammanstallning') }}", "_blank");
+  } else if (choice.value === "berakning") {
+    window.open("{{ url_for('detailed_calculations') }}", "_blank");
+  }
+}
+</script>
+
+<!-- Skript för dynamiskt materialval baserat på kategori -->
+<script>
+var materialer = {{ materialer | tojson }};
+
+document.getElementById('materialType').addEventListener('change', function() {
+    var selectedType = this.value;
+    var materialSelect = document.getElementById('materialSelect');
+    var dimensionInput = document.querySelector("input[name='dimension']");
+    var selectedDimension = parseFloat(dimensionInput.value) || null;
+
+    materialSelect.innerHTML = '<option value="">-- Välj material --</option>';
+
+    for (var key in materialer) {
+        if (materialer.hasOwnProperty(key)) {
+            var material = materialer[key];
+            if (material["material typ"] === selectedType) {
+                if ((selectedType === "Rörskål" || selectedType === "Rörskål Diff") && selectedDimension !== null) {
+                    if (parseFloat(material["diameter"]) === selectedDimension) {
+                        var option = document.createElement('option');
+                        option.value = key;
+                        option.text = material["artikelnamn"] + ' - ' + material["kostnad"] + ' SEK';
+                        materialSelect.appendChild(option);
+                    }
+                } else {
+                    var option = document.createElement('option');
+                    option.value = key;
+                    option.text = material["artikelnamn"] + ' - ' + material["kostnad"] + ' SEK';
+                    materialSelect.appendChild(option);
+                }
+            }
+        }
+    }
+});
+</script>
+
+<!-- Ett enda toggle-scriptblock för att hantera både kolumner och filterfält -->
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  var toggleBtn = document.getElementById("toggleObjektSektion");
+  var filterContainer = document.getElementById("filterContainer");
+  var table = document.getElementById("overviewTable");
+  
+  if (!toggleBtn) { console.error("Toggle-knappen hittades inte!"); return; }
+  if (!table) { console.error("Tabellen med id 'overviewTable' hittades inte!"); return; }
+  
+  // Sätt initialt tillstånd
+  toggleBtn.setAttribute("data-hidden", "false");
+  filterContainer.style.display = "block";
+  
+  toggleBtn.addEventListener("click", function() {
+    var hide = toggleBtn.getAttribute("data-hidden") === "false";
+    var rows = table.rows;
+    
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].cells.length > 2) {
+        rows[i].cells[1].style.display = hide ? "none" : "";
+        rows[i].cells[2].style.display = hide ? "none" : "";
+      }
+    }
+    
+    var summaryRow = table.querySelector("tfoot tr");
+    if (summaryRow) {
+      if (hide) {
+        summaryRow.cells[0].colSpan = 4;
+      } else {
+        summaryRow.cells[0].colSpan = 6;
+      }
+    }
+    
+    if (hide) {
+      toggleBtn.textContent = "Visa objekt/sektion";
+      toggleBtn.setAttribute("data-hidden", "true");
+      filterContainer.style.display = "none";
+    } else {
+      toggleBtn.textContent = "Dölj objekt/sektion";
+      toggleBtn.setAttribute("data-hidden", "false");
+      filterContainer.style.display = "block";
+    }
+    
+    // Uppdatera summeringen så att den hamnar i rätt celler
+    updateSums();
+  });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  var table = document.getElementById("overviewTable");
+  var filterObjekt = document.getElementById("filterObjekt");
+  var filterSektion = document.getElementById("filterSektion");
+  
+  function filterRows() {
+    var filterObjektValue = filterObjekt.value.toLowerCase().trim();
+    var filterSektionValue = filterSektion.value.toLowerCase().trim();
+    var rows = table.querySelectorAll("tbody tr");
+    
+    rows.forEach(function(row) {
+      var cellObjekt = row.cells[1];
+      var cellSektion = row.cells[2];
+      
+      // Om cellen innehåller ett inputfält, hämta värdet
+      var textObjekt = "";
+      if(cellObjekt) {
+        var inputObj = cellObjekt.querySelector("input");
+        textObjekt = inputObj ? inputObj.value.toLowerCase() : cellObjekt.textContent.toLowerCase();
+      }
+      
+      var textSektion = "";
+      if(cellSektion) {
+        var inputSek = cellSektion.querySelector("input");
+        textSektion = inputSek ? inputSek.value.toLowerCase() : cellSektion.textContent.toLowerCase();
+      }
+      
+      if(textObjekt.indexOf(filterObjektValue) !== -1 && textSektion.indexOf(filterSektionValue) !== -1) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+  
+  filterObjekt.addEventListener("keyup", filterRows);
+  filterSektion.addEventListener("keyup", filterRows);
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+function updateSums() {
+  var totalLength = 0, totalBojar = 0, totalAvstick = 0, totalVentilkapor = 0, totalFlanskapa = 0, totalRorstod = 0;
+  var rows = document.querySelectorAll("#overviewTable tbody tr");
+  
+  rows.forEach(function(row) {
+    // För Längd – försök läsa från data-attributet
+    var lengthValue = row.cells[6].getAttribute('data-length');
+    if (!lengthValue) {
+      // Fallback: använd textContent
+      lengthValue = row.cells[6].textContent;
+    }
+    totalLength    += parseFloat(lengthValue) || 0;
+    totalBojar     += parseFloat(row.cells[7].textContent) || 0;
+    totalAvstick   += parseFloat(row.cells[8].textContent) || 0;
+    totalVentilkapor += parseFloat(row.cells[9].textContent) || 0;
+    totalFlanskapa += parseFloat(row.cells[10].textContent) || 0;
+    totalRorstod   += parseFloat(row.cells[11].textContent) || 0;
+  });
+
+  var footerRow = document.querySelector("#overviewTable tfoot tr");
+  if (footerRow) {
+    // Summeringscellerna ligger på cellindex 1-6 i tfoot
+    footerRow.cells[1].textContent = totalLength.toFixed(1);
+    footerRow.cells[2].textContent = Math.round(totalBojar);
+    footerRow.cells[3].textContent = Math.round(totalAvstick);
+    footerRow.cells[4].textContent = Math.round(totalVentilkapor);
+    footerRow.cells[5].textContent = Math.round(totalFlanskapa);
+    footerRow.cells[6].textContent = Math.round(totalRorstod);
+  }
+}
+
+
+  updateSums();
+  // Om du anropar updateSums() vid toggle eller filter, se till att det anropas efter toggling.
+});
+</script>
+
+
+
+{% endblock %}

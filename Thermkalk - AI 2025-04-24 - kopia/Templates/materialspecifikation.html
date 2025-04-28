@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block title %}Materialspecifikation{% endblock %}
+{% block content %}
+<h2>Materialspecifikation</h2>
+<form method="post" action="{{ url_for('save_adjusted_prices') }}">
+  <table class="table table-bordered" id="materialTable">
+    <thead>
+      <tr>
+        <th>Artikelnamn</th>
+        <th>Artikelnummer</th>
+        <th>Senast uppdaterad</th>
+        <th>Mängd</th>
+        <th>Enhet</th>
+        <th>Á-pris (kr)</th>
+        <th>Justerat pris (kr)</th>
+        <th>Totalkostnad (kr)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary %}
+      <tr data-quantity="{{ row.mängd }}" data-apris="{{ row.apris }}">
+        <td>{{ row.artikelnamn }}</td>
+        <td>{{ row.artikelnr }}</td>
+        <td>{{ row.senast_uppdaterad }}</td>
+        <td>{{ row.mängd | round(2) }}</td>
+        <td>{{ row.enhet }}</td>
+        <td>{{ row.apris | round(2) }}</td>
+        <td>
+          <input type="number" step="any" name="adjusted_price_{{ row.group_key }}" class="form-control adjusted-price" style="max-width:100px;"
+            value="{{ row.total_cost / row.mängd if row.mängd > 0 and (row.total_cost / row.mängd) != row.apris else '' }}">
+        </td>
+        <td class="row-total">{{ row.total_cost | round(2) }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td colspan="7" style="text-align: right;"><strong>Totalt:</strong></td>
+        <td id="overallTotal"><strong>{{ total_material_cost | round(2) }}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="submit" class="btn btn-primary">Spara justerade priser</button>
+</form>
+<a href="{{ url_for('calculate') }}" class="btn btn-secondary">Tillbaka</a>
+
+<script>
+  function recalcRowTotal(row) {
+    var quantity = parseFloat(row.getAttribute('data-quantity')) || 0;
+    var defaultPrice = parseFloat(row.getAttribute('data-apris')) || 0;
+    var input = row.querySelector('.adjusted-price');
+    var adjustedPrice = parseFloat(input.value);
+    var priceToUse = !isNaN(adjustedPrice) ? adjustedPrice : defaultPrice;
+    var total = quantity * priceToUse;
+    row.querySelector('.row-total').innerText = total.toFixed(2);
+  }
+  function recalcOverallTotal() {
+    var overall = 0;
+    var rows = document.querySelectorAll('#materialTable tbody tr[data-quantity]');
+    rows.forEach(function(row) {
+      var quantity = parseFloat(row.getAttribute('data-quantity')) || 0;
+      var defaultPrice = parseFloat(row.getAttribute('data-apris')) || 0;
+      var input = row.querySelector('.adjusted-price');
+      var adjustedPrice = parseFloat(input.value);
+      var priceToUse = !isNaN(adjustedPrice) ? adjustedPrice : defaultPrice;
+      overall += quantity * priceToUse;
+    });
+    document.getElementById('overallTotal').innerText = overall.toFixed(2);
+  }
+  document.querySelectorAll('.adjusted-price').forEach(function(input) {
+    input.addEventListener('input', function(){
+      var row = input.closest('tr');
+      recalcRowTotal(row);
+      recalcOverallTotal();
+    });
+  });
+</script>
+{% endblock %}

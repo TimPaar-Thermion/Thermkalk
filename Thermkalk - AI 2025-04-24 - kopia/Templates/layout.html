@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Thermkalk Web App{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+      /* Sätt en ljusblå bakgrund på hela sidan */
+      body {
+        background-color: #add8e6; /* Ljusblå färg */
+        color: #333;
+      }
+      /* Innehållets container med vit bakgrund och lite transparens */
+     .content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 10px;
+  margin-top: 50px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+h1, h2, p {
+  color: #333;
+}
+
+.small-input {
+  max-width: 200px !important;
+  display: inline-block;
+}
+
+a.btn {
+  min-width: 200px;
+}
+
+      /* Sätter en fast bredd på knappar med klassen equal-btn */
+      .equal-btn {
+        width: 200px; /* Ändra vid behov */
+      }
+      /* Här kan du justera bredden på container-klassen */
+      .container {
+        max-width: 4000px;
+      }
+      /* Gör inmatningsfälten mindre – använd !important för att åsidosätta Bootstrap */
+      .small-input {
+        max-width: 200px !important;
+        display: inline-block;
+      }
+      .folie-label {
+        font-size: 1.5rem; /* Gör texten större */
+        font-weight: bold; /* Gör texten fet */
+      }
+      .folie-checkbox {
+        width: 25px; /* Gör checkboxen större */
+        height: 25px;
+        margin-right: 10px; /* Lägg till avstånd mellan checkbox och text */
+      }
+      /* Stil för tabellen med detaljerade beräkningar */
+      .detailed-table th,
+      .detailed-table td {
+        max-width: 15ch;  /* 15 tecken */
+        white-space: normal;   
+        word-wrap: break-word;
+      }
+      /* Gör total materialkostnad-cellen bredare */
+      .total-material {
+        width: 300px; /* Justera bredden efter behov */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content-wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <!-- Skript läggs in precis innan </body> -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

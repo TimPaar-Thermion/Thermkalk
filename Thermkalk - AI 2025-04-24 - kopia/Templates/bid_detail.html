@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}Anbud detaljer{% endblock %}
+{% block content %}
+  <h2>Anbud ID: {{ bid.id }}</h2>
+  <p><strong>Datum:</strong> {{ bid.datum }}</p>
+  <pre>{{ bid_data | tojson(indent=4) }}</pre>
+  <!-- Knapp för att ladda in kalkylen för redigering -->
+  <a href="{{ url_for('edit_bid', bid_id=bid.id) }}" class="btn btn-primary">Arbeta med kalkylen</a>
+  <a href="{{ url_for('old_bids') }}" class="btn btn-secondary">Tillbaka</a>
+{% endblock %}

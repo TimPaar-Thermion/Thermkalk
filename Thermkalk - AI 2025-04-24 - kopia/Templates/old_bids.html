@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Gamla anbud{% endblock %}
+{% block content %}
+  <h2>Gamla anbud</h2>
+  <div class="table-responsive">
+    <table id="bidsTable" class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Anbudsnummer</th>
+          <th>Anbudsnamn</th>
+          <th>Datum sparat</th>
+          <th>Avdelning</th>
+          <th>Projektledare</th>
+          <th>Kalkylansvarig</th>
+          <th>Kund</th>
+          <th>Projekt typ</th>
+          <th>Redigera</th>
+          <th>Radera</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bid in bids %}
+        <tr>
+          <td>{{ bid.anbudsnummer }}</td>
+          <td>{{ bid.anbudsnamn }}</td>
+          <td>{{ bid.datum }}</td>
+          <td>{{ bid.avdelning }}</td>
+          <td>{{ bid.projektledare }}</td>
+          <td>{{ bid.kalkylansvarig }}</td>
+          <td>{{ bid.kund }}</td>
+          <td>{{ bid['projekt_typ'] }}</td>
+          <td>
+            <a href="{{ url_for('redigera_anbud', bid_id=bid.id) }}" class="btn btn-primary btn-sm">Redigera</a>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('delete_bid', bid_id=bid.id) }}" onsubmit="return confirm('Är du säker på att du vill radera detta anbud?');">
+              <button type="submit" class="btn btn-danger btn-sm">Radera</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">Tillbaka</a>
+{% endblock %}
+
+{% block scripts %}
+  <!-- DataTables CSS kan ligga kvar här om du vill ladda det per sida, alternativt inkludera globalt -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $('#bidsTable').DataTable({
+        "dom": '<"top"f>rt<"bottom"lp><"clear">',
+        "order": [[2, "desc"]],
+        "language": {
+          "search": "Sök:",
+          "lengthMenu": "Visa _MENU_ anbud per sida",
+          "info": "Visa _START_ till _END_ av _TOTAL_ anbud",
+          "infoEmpty": "Inga anbud tillgängliga",
+          "zeroRecords": "Inga matchande anbud funna",
+          "paginate": {
+            "first": "Första",
+            "last": "Sista",
+            "next": "Nästa",
+            "previous": "Föregående"
+          }
+        }
+      });
+    });
+  </script>
+{% endblock %}

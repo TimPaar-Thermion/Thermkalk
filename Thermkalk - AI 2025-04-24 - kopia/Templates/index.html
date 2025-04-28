@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}Välkommen - Thermkalk{% endblock %}
+{% block content %}
+<!-- Hero-sektion med bakgrundsbild via CSS -->
+<div style="
+  position: relative;
+  height: 70vh;
+  background: url('{{ url_for('static', filename='images/thermion.jpg.webp') }}') no-repeat center center;
+  background-size: cover;
+  filter: brightness(100%);
+">
+  <!-- Mörk overlay -->
+  <div style="
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  "></div>
+  
+  <!-- Text och logotyp -->
+  <div style="
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
+  ">
+    <img src="{{ url_for('static', filename='images/thermkalk_logo.png.png') }}" alt="Logotyp"
+         style="max-width: 150px; height: auto; margin-bottom: 20px;">
+    <h1 style="font-size: 2.8rem; margin-bottom: 10px; color: #fff;">Välkommen till Thermkalk</h1>
+    <p style="font-size: 1.4rem; color: #fff;">Ett kalkylprogram byggt av AI</p>
+    <p style="font-size: 1.4rem; color: #fff;">Version 1.0</p>
+    <div style="margin-top: 20px;">
+      <a href="{{ url_for('new_bid') }}" class="btn btn-primary btn-lg" style="margin-right: 10px;">Skapa nytt anbud</a>
+      <a href="{{ url_for('old_bids') }}" class="btn btn-secondary btn-lg">Visa gamla anbud</a>
+    </div>
+    <!-- Inställningar-dropdown med fyra alternativ -->
+    <div style="margin-top: 15px;">
+      <div class="dropdown d-inline-block">
+        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="settingsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Inställningar
+        </button>
+        <div class="dropdown-menu" aria-labelledby="settingsDropdown">
+          <a class="dropdown-item" href="{{ url_for('customers') }}">Kunder</a>
+          <a class="dropdown-item" href="{{ url_for('show_materials') }}">Material</a>
+          <a class="dropdown-item" href="{{ url_for('departments') }}">Avdelningar</a>
+          <a class="dropdown-item" href="{{ url_for('project_managers') }}">Projektledare</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

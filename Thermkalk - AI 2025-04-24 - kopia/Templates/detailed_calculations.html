@@ -1,0 +1,470 @@
+{% extends "layout.html" %} 
+{% block title %}Detaljerade beräkningar{% endblock %}
+{% block content %}
+<h2>Detaljerade beräkningar</h2>
+<div class="table-responsive" style="max-height: 1500px; overflow-y: auto;">
+  <table class="table table-bordered detailed-table">
+    <thead>
+      <tr>
+        <th>Nr</th>
+        <th>Material</th>
+        <th>Isoleringstjocklek</th>
+        <th>Artikelnr Material</th>
+        <th>Ytbeklädnad</th>
+        <th>Artikelnr Ytbeklädnad</th>
+        <th>Dimension (mm)</th>
+        <th>Längd (m)</th>
+        <th>Isolering area (m²)</th>
+        <th>Isolering (kr)</th>
+        <th>Isolering Grundtid montering</th>
+        <th>Isolering Grundtid tillverkning</th>
+        <th>Isolering Tilläggstid montering</th>
+        <th>Arbetstid isolering (t)</th>
+        <th>Arbetstid ytbeklädnad (t)</th>
+        <th>Höjdtillägg (%)</th>
+        <th>Ytbeklädnad Grundtid montering</th>
+        <th>Ytbeklädnad Grundtid tillverkning</th>
+        <th>Ytbeklädnad Tilläggstid montering</th>
+        <th>Ytbeklädnad (kr)</th>
+        <th>Ytbeklädnad area (m²)</th>
+        <th>Tejp (Antal rullar)</th>
+        <th>Artikelnr Tejp</th>
+        <th>Á-pris Tejp</th>
+        <th>Total Tejp (kr)</th>
+        <th>Spoltråd (kg)</th>
+        <th>Artikelnr Spoltråd</th>
+        <th>Á-pris Spoltråd</th>
+        <th>Total Spoltråd (kr)</th>
+        <th>Band (m)</th>
+        <th>Artikelnr Band</th>
+        <th>Total Band (kr)</th>
+        <th>Grundtid band</th>
+        <th>Arbetstid band</th>
+        <th>Rörstöd antal</th>
+        <th>Rörstöd Grundtid</th>
+        <th>Arbetstid Rörstöd</th>
+        <th>Grundtid Montering Folie</th>
+        <th>Tilläggstid Montering folie</th>
+        <th>Arbetstid Folie (t)</th>
+        <!-- Slut Folie -->
+        <th>Folie (m²)</th>
+        <th>Artikelnr Folie</th>
+        <th>Total Folie (kr)</th>
+        <th>Total materialkostnad (kr)</th>
+        <th>Total arbetstid (t)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pipe in pipe_list %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ pipe.material|default("-") }}</td>
+        <td>
+          {% if pipe.material_key and materialer[pipe.material_key] is defined %}
+            {{ materialer[pipe.material_key].isoleringstjocklek|default("Ej angivet") }}
+          {% else %}
+            Ej angivet
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.material_key and materialer[pipe.material_key] is defined %}
+            {{ materialer[pipe.material_key].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.ytbekladnad_key and materialer[pipe.ytbekladnad_key] is defined %}
+            {{ materialer[pipe.ytbekladnad_key].artikelnamn }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.ytbekladnad_key and materialer[pipe.ytbekladnad_key] is defined %}
+            {{ materialer[pipe.ytbekladnad_key].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ pipe.dimension|default("") }}</td>
+        <td>{{ pipe.length|default(0)|round(0)|thousandspace }}</td>
+        <td>{{ pipe.area|default(0)|round(0)|thousandspace }}</td>
+        <td>{{ pipe.price|default(0)|round(0)|thousandspace }} kr</td>
+        <td>{{ pipe.isolering_grund_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.isolering_grund_tillverkning|default(0)|round(2) }}</td>
+        <td>{{ pipe.isolering_tillagg_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.work_time_isolering|default(0)|round(0)|thousandspace }}</td>
+        <td>{{ pipe.work_time_ytbekladnad|default(0)|round(0)|thousandspace }}</td>
+        <td>
+          {% if pipe.hojdtillagg %}
+            {{ pipe.hojdtillagg|round(2) }}%
+          {% else %}
+            0%
+          {% endif %}
+        </td>
+        <td>{{ pipe.grundtid_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.grundtid_tillverkning|default(0)|round(2) }}</td>
+        <td>{{ pipe.tillaggstid_montering|default(0)|round(2) }}</td>
+        <td>
+          {% if pipe.ytbekladnad_cost %}
+            {{ pipe.ytbekladnad_cost|round(0)|thousandspace }} kr
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.ytbekladnad_area %}
+            {{ pipe.ytbekladnad_area|round(0)|thousandspace }} m²
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        {# Tejp-uppgifter #}
+        <td>{{ pipe.tejp_quantity|default(0) }}</td>
+        <td>
+          {% if pipe.material %}
+            {% if "lamellmatta" in pipe.material|lower %}
+              9556523
+            {% elif "conlit fire mat" in pipe.material|lower %}
+              PTBCR07550
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.material %}
+            {% if "lamellmatta" in pipe.material|lower %}
+              {{ materialer["9556523"].kostnad|round(0)|thousandspace }} kr
+            {% elif "conlit fire mat" in pipe.material|lower %}
+              {{ materialer["PTBCR07550"].kostnad|round(0)|thousandspace }} kr
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.tejp_quantity %}
+            {% if pipe.material and ("lamellmatta" in pipe.material|lower) %}
+              {{ (pipe.tejp_quantity * materialer["9556523"].kostnad)|round(0)|thousandspace }} kr
+            {% elif pipe.material and ("conlit fire mat" in pipe.material|lower) %}
+              {{ (pipe.tejp_quantity * materialer["PTBCR07550"].kostnad)|round(0)|thousandspace }} kr
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        {# Spoltråd-uppgifter #}
+        <td>{{ pipe.spoltrad_kg|default(0)|round(0)|thousandspace }}</td>
+        <td>
+          {{ materialer["4023313"].artikelnr if materialer["4023313"] is defined else "-" }}
+        </td>
+        <td>{{ materialer["4023313"].kostnad|round(0)|thousandspace }} kr</td>
+        <td>{{ (pipe.spoltrad_kg * materialer["4023313"].kostnad)|round(0)|thousandspace }} kr</td>
+        {# Banduppgifter #}
+        <td>{{ pipe.band and pipe.band_length|round(0)|thousandspace or 0 }} m</td>
+        <td>
+          {% if pipe.band %}
+            {{ materialer["9556892"].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% set band_cost = pipe.band and (pipe.band_length * materialer["9556892"].kostnad) or 0 %}
+          {{ band_cost|round(0)|thousandspace }} kr
+        </td>
+        <td>{{ pipe.band_grundtid|default(0)|round(2) }}</td>
+        <td>{{ pipe.band_arbetstid|default(0)|round(2) }}</td>
+        {# Rörstöd-uppgifter #}
+        <td>{{ pipe.rorstod|default(0) }}</td>
+        <td>
+          {% if pipe.dimension|default(0) < 150 %}
+            0,144
+          {% else %}
+            0,36
+          {% endif %}
+        </td>
+        <td>
+          {# Beräkna Arbetstid Rörstöd endast om ytbeklädnaden innehåller "aluminium" eller "stålplåt" #}
+          {% set rostod_work = 0 %}
+          {% if pipe.ytbekladnad_key and materialer[pipe.ytbekladnad_key] is defined %}
+            {% set ytb_material = materialer[pipe.ytbekladnad_key].artikelnamn|lower %}
+            {% if "aluminium" in ytb_material or "stålplåt" in ytb_material %}
+              {% if pipe.dimension|default(0) < 150 %}
+                {% if "stålplåt" in ytb_material %}
+                  {% set rostod_work = (pipe.rorstod|default(0) * 0.19)|round(3) %}
+                {% else %}
+                  {% set rostod_work = (pipe.rorstod|default(0) * 0.144)|round(3) %}
+                {% endif %}
+              {% else %}
+                {% set insulation = 0 %}
+                {% if pipe.material_key and materialer[pipe.material_key] is defined %}
+                  {% set insulation = materialer[pipe.material_key].isoleringstjocklek|default(0) %}
+                {% endif %}
+                {% set effective_diameter = (pipe.dimension|default(0) + 2 * insulation) / 1000 %}
+                {% set omkrets = effective_diameter * 3.14 %}
+                {% if "stålplåt" in ytb_material %}
+                  {% set rostod_work = (pipe.rorstod|default(0) * omkrets * 0.484)|round(3) %}
+                {% else %}
+                  {% set rostod_work = (pipe.rorstod|default(0) * omkrets * 0.36)|round(3) %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+          {{ rostod_work }}
+        </td>
+        {# Grundtid Montering Folie, Tilläggstid Montering folie och Arbetstid Folie beräknas likadant #}
+        <td>0,03</td>
+        <td>0,049</td>
+        <td>
+          {% if pipe.folie %}
+            {{ (0.03 * pipe.length + 0.049 * pipe.area)|round(2) }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ pipe.folie and pipe.foil_area|default(0)|round(0)|thousandspace or 0 }} m²</td>
+        <td>
+          {% if pipe.folie %}
+            {{ materialer["4025571"].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% set folie_cost = (pipe.foil_area|default(0) * materialer["4025571"].kostnad)|round(0) %}
+          {{ folie_cost|thousandspace }} kr
+        </td>
+        {# Total materialkostnad #}
+        <td>
+          {% set tape_cost = 0 %}
+          {% if pipe.tejp_quantity %}
+            {% if pipe.material and ("lamellmatta" in pipe.material|lower) %}
+              {% set tape_cost = pipe.tejp_quantity * materialer["9556523"].kostnad %}
+            {% elif pipe.material and ("conlit fire mat" in pipe.material|lower) %}
+              {% set tape_cost = pipe.tejp_quantity * materialer["PTBCR07550"].kostnad %}
+            {% endif %}
+          {% endif %}
+          {% set spool_cost = pipe.spoltrad_kg * materialer["4023313"].kostnad %}
+          {% set total_material = pipe.price|default(0)
+                                   + (pipe.ytbekladnad_cost|default(0))
+                                   + tape_cost
+                                   + spool_cost
+                                   + band_cost
+                                   + folie_cost %}
+          {{ total_material|thousandspace }} kr
+        </td>
+        {# Total arbetstid – summera isolering, ytbeklädnad, band, folie och rörstöd #}
+        <td>
+          {% set folie_work = pipe.folie and (0.03 * pipe.length + 0.049 * pipe.area) or 0 %}
+          {% set total_work = (pipe.work_time_isolering|default(0))
+                              + (pipe.work_time_ytbekladnad|default(0))
+                              + (pipe.band_arbetstid|default(0))
+                              + folie_work
+                              + rostod_work %}
+          {{ total_work|round(0)|thousandspace }}
+        </td>
+      </tr>
+
+      {# Om denna pipe har en böj (t.ex. pipe.boj == True) så skapas en extra rad nedanför #}
+      {% if pipe.boj %}
+      <tr class="bend-row">
+        <td>{{ loop.index }}</td>
+        <td>Böj</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>{{ pipe.dimension|default("") }}</td>
+        <td>{{ pipe.boj_length|default(0)|round(0)|thousandspace }}</td>
+        {# Vi använder samma area och pris om det är relevant – annars kan du anpassa #}
+        <td>{{ pipe.area|default(0)|round(0)|thousandspace }}</td>
+        <td>{{ pipe.price|default(0)|round(0)|thousandspace }} kr</td>
+        <td>{{ pipe.isolering_grund_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.isolering_grund_tillverkning|default(0)|round(2) }}</td>
+        <td>{{ pipe.isolering_tillagg_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.work_time_isolering|default(0)|round(0)|thousandspace }}</td>
+        <td>{{ pipe.work_time_ytbekladnad|default(0)|round(0)|thousandspace }}</td>
+        <td>
+          {% if pipe.hojdtillagg %}
+            {{ pipe.hojdtillagg|round(2) }}%
+          {% else %}
+            0%
+          {% endif %}
+        </td>
+        <td>{{ pipe.grundtid_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.grundtid_tillverkning|default(0)|round(2) }}</td>
+        <td>{{ pipe.tillaggstid_montering|default(0)|round(2) }}</td>
+        <td>{{ pipe.ytbekladnad_cost|default(0)|round(0)|thousandspace }} kr</td>
+        <td>{{ pipe.ytbekladnad_area|default(0)|round(0)|thousandspace }} m²</td>
+        <td>{{ pipe.tejp_quantity|default(0) }}</td>
+        <td>
+          {% if pipe.material %}
+            {% if "lamellmatta" in pipe.material|lower %}
+              9556523
+            {% elif "conlit fire mat" in pipe.material|lower %}
+              PTBCR07550
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.material %}
+            {% if "lamellmatta" in pipe.material|lower %}
+              {{ materialer["9556523"].kostnad|round(0)|thousandspace }} kr
+            {% elif "conlit fire mat" in pipe.material|lower %}
+              {{ materialer["PTBCR07550"].kostnad|round(0)|thousandspace }} kr
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if pipe.tejp_quantity %}
+            {% if pipe.material and ("lamellmatta" in pipe.material|lower) %}
+              {{ (pipe.tejp_quantity * materialer["9556523"].kostnad)|round(0)|thousandspace }} kr
+            {% elif pipe.material and ("conlit fire mat" in pipe.material|lower) %}
+              {{ (pipe.tejp_quantity * materialer["PTBCR07550"].kostnad)|round(0)|thousandspace }} kr
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ pipe.spoltrad_kg|default(0)|round(0)|thousandspace }}</td>
+        <td>
+          {{ materialer["4023313"].artikelnr if materialer["4023313"] is defined else "-" }}
+        </td>
+        <td>{{ materialer["4023313"].kostnad|round(0)|thousandspace }} kr</td>
+        <td>{{ (pipe.spoltrad_kg * materialer["4023313"].kostnad)|round(0)|thousandspace }} kr</td>
+        <td>{{ pipe.band and pipe.band_length|round(0)|thousandspace or 0 }} m</td>
+        <td>
+          {% if pipe.band %}
+            {{ materialer["9556892"].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% set band_cost_boj = pipe.band and (pipe.band_length * materialer["9556892"].kostnad) or 0 %}
+          {{ band_cost_boj|round(0)|thousandspace }} kr
+        </td>
+        <td>{{ pipe.band_grundtid|default(0)|round(2) }}</td>
+        <td>{{ pipe.band_arbetstid|default(0)|round(2) }}</td>
+        <td>{{ pipe.rorstod|default(0) }}</td>
+        <td>
+          {% if pipe.dimension|default(0) < 150 %}
+            0,144
+          {% else %}
+            0,36
+          {% endif %}
+        </td>
+        <td>
+          {# Räkna ut rörstöd för böj med samma villkor, men med pipe.boj_length istället för pipe.length i de beräkningsberoende formlerna om det behövs – här antas att rörstödberäkningen förblir oförändrad #}
+          {% set rostod_work_boj = 0 %}
+          {% if pipe.ytbekladnad_key and materialer[pipe.ytbekladnad_key] is defined %}
+            {% set ytb_material = materialer[pipe.ytbekladnad_key].artikelnamn|lower %}
+            {% if "aluminium" in ytb_material or "stålplåt" in ytb_material %}
+              {% if pipe.dimension|default(0) < 150 %}
+                {% if "stålplåt" in ytb_material %}
+                  {% set rostod_work_boj = (pipe.rorstod|default(0) * 0.19)|round(3) %}
+                {% else %}
+                  {% set rostod_work_boj = (pipe.rorstod|default(0) * 0.144)|round(3) %}
+                {% endif %}
+              {% else %}
+                {% set insulation = 0 %}
+                {% if pipe.material_key and materialer[pipe.material_key] is defined %}
+                  {% set insulation = materialer[pipe.material_key].isoleringstjocklek|default(0) %}
+                {% endif %}
+                {% set effective_diameter = (pipe.dimension|default(0) + 2 * insulation) / 1000 %}
+                {% set omkrets = effective_diameter * 3.14 %}
+                {% if "stålplåt" in ytb_material %}
+                  {% set rostod_work_boj = (pipe.rorstod|default(0) * omkrets * 0.484)|round(3) %}
+                {% else %}
+                  {% set rostod_work_boj = (pipe.rorstod|default(0) * omkrets * 0.36)|round(3) %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+          {{ rostod_work_boj }}
+        </td>
+        <td>0,03</td>
+        <td>0,049</td>
+        <td>
+          {% if pipe.folie %}
+            {{ (0.03 * pipe.boj_length + 0.049 * pipe.area)|round(2) }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ pipe.folie and pipe.foil_area|default(0)|round(0)|thousandspace or 0 }} m²</td>
+        <td>
+          {% if pipe.folie %}
+            {{ materialer["4025571"].artikelnr }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% set folie_cost_boj = (pipe.foil_area|default(0) * materialer["4025571"].kostnad)|round(0) %}
+          {{ folie_cost_boj|thousandspace }} kr
+        </td>
+        <td>
+          {% set tape_cost_boj = 0 %}
+          {% if pipe.tejp_quantity %}
+            {% if pipe.material and ("lamellmatta" in pipe.material|lower) %}
+              {% set tape_cost_boj = pipe.tejp_quantity * materialer["9556523"].kostnad %}
+            {% elif pipe.material and ("conlit fire mat" in pipe.material|lower) %}
+              {% set tape_cost_boj = pipe.tejp_quantity * materialer["PTBCR07550"].kostnad %}
+            {% endif %}
+          {% endif %}
+          {% set total_material_boj = pipe.price|default(0)
+                                      + (pipe.ytbekladnad_cost|default(0))
+                                      + tape_cost_boj
+                                      + (pipe.spoltrad_kg * materialer["4023313"].kostnad)
+                                      + band_cost_boj
+                                      + folie_cost_boj %}
+          {{ total_material_boj|thousandspace }} kr
+        </td>
+        <td>
+          {% set folie_work_boj = pipe.folie and (0.03 * pipe.boj_length + 0.049 * pipe.area) or 0 %}
+          {% set total_work_boj = (pipe.work_time_isolering|default(0))
+                                  + (pipe.work_time_ytbekladnad|default(0))
+                                  + (pipe.band_arbetstid|default(0))
+                                  + folie_work_boj
+                                  + rostod_work_boj %}
+          {{ total_work_boj|round(0)|thousandspace }}
+        </td>
+      </tr>
+      {% endif %}
+      {# Slut böj-rad #}
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="43" class="text-right"><strong>Total materialkostnad:</strong></td>
+        <td colspan="1" class="total-material"><strong>{{ total_material_cost|thousandspace }} kr</strong></td>
+      </tr>
+      <tr>
+        <td colspan="43" class="text-right"><strong>Total arbetstid:</strong></td>
+        <td colspan="1"><strong>{{ total_work_time|round(2) }} t</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+<a href="{{ url_for('calculate') }}" class="btn btn-secondary">Tillbaka</a>
+{% endblock %}

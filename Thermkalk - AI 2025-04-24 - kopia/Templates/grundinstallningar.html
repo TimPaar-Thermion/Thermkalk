@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}Grundinställningar{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Grundinställningar</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label for="euro_kurs" class="form-label">Euro Kurs</label>
+      <input type="number" step="any" class="form-control" id="euro_kurs" name="euro_kurs" value="{{ euro_kurs }}">
+    </div>
+    <div class="mb-3">
+      <label for="ue_pris" class="form-label">UE-Pris</label>
+      <input type="number" step="any" class="form-control" id="ue_pris" name="ue_pris" value="{{ ue_pris }}">
+    </div>
+    <div class="mb-3">
+      <label for="diverse_forbrukning" class="form-label">Diverse förbrukning</label>
+      <input type="number" step="any" class="form-control" id="diverse_forbrukning" name="diverse_forbrukning" value="{{ diverse_forbrukning }}">
+    </div>
+    <div class="mb-3">
+      <label for="timlon" class="form-label">Timlön</label>
+      <input type="number" step="any" class="form-control" id="timlon" name="timlon" value="{{ timlon }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Spara</button>
+  </form>
+</div>
+{% endblock %}

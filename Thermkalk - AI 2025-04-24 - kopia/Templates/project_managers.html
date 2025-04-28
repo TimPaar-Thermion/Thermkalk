@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}Projektledare{% endblock %}
+{% block content %}
+  <h2 class="display-4 text-center">Projektledare</h2>
+  <ul class="list-group mt-4">
+    {% for manager in project_managers %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <span class="font-weight-bold">{{ manager.name }}</span>
+          {% if manager.department %}
+            <small class="text-muted">(Avdelning: {{ manager.department }})</small>
+          {% else %}
+            <small class="text-muted">(Ingen avdelning vald)</small>
+          {% endif %}
+        </div>
+        <div>
+          <form method="post" action="{{ url_for('update_pm_department', index=loop.index0) }}" class="form-inline" style="display:inline;">
+            <select name="department" class="form-control form-control-sm mr-2">
+              {% for dept in departments %}
+                <option value="{{ dept }}" {% if dept == manager.department %}selected{% endif %}>{{ dept }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Uppdatera</button>
+          </form>
+          <form method="post" action="{{ url_for('delete_project_manager', index=loop.index0) }}" onsubmit="return confirm('Är du säker på att du vill radera projektledaren?');" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Radera</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+  <form method="post" style="margin-top: 20px;">
+    <div class="form-group">
+      <label class="h5">Lägg till ny projektledare</label>
+      <input type="text" name="new_manager" class="form-control" placeholder="Namn" required>
+      <select name="department" class="form-control mt-2">
+        {% for dept in departments %}
+          <option value="{{ dept }}">{{ dept }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success btn-lg">Lägg till</button>
+  </form>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg mt-4">Tillbaka</a>
+{% endblock %}

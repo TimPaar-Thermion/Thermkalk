@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+{% block title %}Skapa nytt anbud{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Skapa nytt anbud</h2>
+
+    <form method="post" action="{{ url_for('new_bid') }}">
+        
+        <!-- Anbudsnamn -->
+        <div class="form-group">
+            <label>Anbudsnamn:</label>
+            <input type="text" name="bid_name" class="form-control" required>
+        </div>
+
+        <!-- Anbudsnummer -->
+        <div class="form-group">
+            <label>Anbudsnummer:</label>
+            <input type="text" name="bid_number" class="form-control" required>
+        </div>
+
+        <!-- Välj kund (med sökfunktion) -->
+        <div class="form-group">
+            <label>Välj kund:</label>
+            <input type="text" id="searchCustomer" class="form-control" placeholder="Sök kund...">
+            <select name="customer" id="customerDropdown" class="form-control mt-2" required>
+                <option value="">-- Välj en kund --</option>
+                {% for customer in customers %}
+                <option value="{{ customer.Kund }}">{{ customer.Kund }} ({{ customer['Person/Orgnr'] }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Avdelning (dropdown med de avdelningar som finns i session) -->
+        <div class="form-group">
+            <label>Avdelning:</label>
+            <select name="department" id="departmentSelect" class="form-control" required>
+                <option value="">-- Välj en avdelning --</option>
+                {% for dept in departments %}
+                <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Projektledare (kommer att uppdateras automatiskt) -->
+        <div class="form-group">
+            <label>Projektledare:</label>
+            <select name="project_manager" id="projectManagerSelect" class="form-control" required>
+                <option value="">-- Välj projektledare --</option>
+                <!-- Alternativen fylls in via JavaScript -->
+            </select>
+        </div>
+
+        <!-- Kalkylansvarig -->
+        <div class="form-group">
+            <label>Kalkylansvarig:</label>
+            <select name="calculator" class="form-control" required>
+                <option value="">-- Välj kalkylansvarig --</option>
+                {% for pm in project_managers %}
+                <option value="{{ pm.name }}">{{ pm.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+          <label for="project_type">Projekt typ</label>
+          <select class="form-control" id="project_type" name="projekt_typ">
+            <option value="VS">VS</option>
+            <option value="Vent">Vent</option>
+            <option value="Industri">Industri</option>
+            <option value="Tankar">Tankar</option>
+          </select>
+        </div>
+
+        <!-- OBS! Materialvalet tas bort från denna sida -->
+        <button type="submit" class="btn btn-primary mt-3">Skapa anbud</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Tillbaka</a>
+    </form>
+</div>
+
+<script>
+    // Uppdatera projektledare-dropdown baserat på vald avdelning
+    var projectManagers = {{ project_managers | tojson }};
+    function updateProjectManagerDropdown() {
+        var selectedDept = document.getElementById('departmentSelect').value;
+        var pmSelect = document.getElementById('projectManagerSelect');
+        pmSelect.innerHTML = '<option value="">-- Välj projektledare --</option>';
+        projectManagers.forEach(function(pm) {
+            if(pm.department === selectedDept) {
+                var option = document.createElement('option');
+                option.value = pm.name;
+                option.text = pm.name;
+                pmSelect.appendChild(option);
+            }
+        });
+    }
+    document.getElementById('departmentSelect').addEventListener('change', updateProjectManagerDropdown);
+
+    // Sökfunktion för kunder
+    document.getElementById("searchCustomer").addEventListener("input", function() {
+        let searchValue = this.value.toLowerCase();
+        let options = document.getElementById("customerDropdown").options;
+        for (let i = 0; i < options.length; i++) {
+            let text = options[i].text.toLowerCase();
+            options[i].style.display = text.includes(searchValue) ? "" : "none";
+        }
+    });
+</script>
+
+{% endblock %}

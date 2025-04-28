@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+{% block title %}Alla material{% endblock %}
+{% block content %}
+  <h2>Lista över material</h2>
+  <a href="{{ url_for('new_material') }}" class="btn btn-primary mb-3">Nytt material</a>
+  
+  <!-- Uppdatera-knapp som öppnar filutforskaren -->
+  <input type="file" id="fileInput" style="display:none;" />
+  <button type="button" id="openExplorerButton" class="btn btn-secondary mb-3">Uppdatera</button>
+  
+  <div class="form-group">
+    <label>Filtrera:</label>
+    <input type="text" id="materialFilter" class="form-control" placeholder="Sök i alla kolumner...">
+  </div>
+
+  <form method="post" action="{{ url_for('update_material_sheet') }}">
+    <!-- Spara-knappen även högst upp -->
+    <button type="submit" class="btn btn-primary mb-3">Spara hela bladet</button>
+    <table class="table table-bordered" id="materialsTable">
+      <thead>
+        <tr>
+          <th>Kategori</th>
+          <th>Artikelnr</th>
+          <th>Materialtyp</th>
+          <th>Artikelnamn</th>
+          <th>Diameter rörskål</th>
+          <th>Isoleringstjocklek</th>
+          <th>Leverantör</th>
+          <th>Enhet</th>
+          <th>Kostnad/enhet</th>
+          <th colspan="2" style="text-align: center;">Grundtid</th>
+          <th colspan="2" style="text-align: center;">Tilläggstid</th>
+          <th>Senast uppdaterad</th>
+          <th>Spill</th>
+          <th>Spoltråd</th>
+          <th>Tejp</th>
+          <th>Black Tejp</th>
+          <th>Popnit</th>
+          <th>Klammer</th>
+          <th>AGM</th>
+          <th>Lim</th>
+          <th>Rengöring</th>
+        </tr>
+        <tr>
+          <th colspan="9"></th>
+          <th style="text-align: center;">Monteringstid</th>
+          <th style="text-align: center;">Tillverkning</th>
+          <th style="text-align: center;">Monteringstid</th>
+          <th style="text-align: center;">Tillverkning</th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set options = ["Kondensisolering", "Brandmatta", "Brandmatta Black", "Rörskål", "Rörskål Diff", "Aluminiumplåt", "Stålplåt", "Tillbehör", "Tillbehör - Tejp"] %}
+        {% for key, data in materialer.items() %}
+        <tr>
+          <td>
+{% set lower_name = data.artikelnamn|lower %} {% set tillbehor_exceptions = ["isover tejp rutarmerad 75*50", "aluminium glödgad","popnit aluminium 3,2x10 1000st ask"] %} {% if data["material typ"] in ["Rörskål", "Rörskål Diff", "Kondensisolering"] or "conlit" in lower_name or "lamellmatta" in lower_name %} Isolering {% elif "aluminium" in lower_name and lower_name not in tillbehor_exceptions %} Ytbeklädnad {% else %} Tillbehör {% endif %}
+          </td>
+          <td>{{ data.artikelnr }}</td>
+          <td>
+            <select name="material_{{ data.artikelnr }}" class="form-control" style="min-width: 120px;">
+              {% for opt in options %}
+                <option value="{{ opt }}" {% if data["material typ"] == opt %}selected{% endif %}>{{ opt }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>{{ data.artikelnamn }}</td>
+          <td>{{ data.diameter }}</td>
+          <td>{{ data.isoleringstjocklek }}</td>
+          <td>{{ data.leverantör }}</td>
+          <td>{{ data.enhet }}</td>
+          <td>{{ data.kostnad }} kr</td>
+          <td>{{ data.get("lopmeter", "") }}</td>
+          <td>{{ data.get("kvm", "") }}</td>
+          <td>{{ data.get("monteringstid", "") }}</td>
+          <td>{{ data.get("tillverkning", "") }}</td>
+          <td>{{ data.get("senast_uppdaterad", "") }}</td>
+          <td>
+            <input type="text" name="spill_{{ data.artikelnr }}" value="{{ data.get('spill', '') }}" class="form-control" placeholder="%" style="width: 70px;" />
+          </td>
+          <!-- Tillbehörskolumner -->
+          <td style="text-align: center;">
+            {% if data["material typ"] in ["Rörskål", "Rörskål Diff", "Kondensisolering"] %}
+              ja
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if data["material typ"] in ["Rörskål Diff", "Kondensisolering"] %}
+              ja
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if data["material typ"] in ["Brandmatta", "Brandmatta Black"] %}
+              ja
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if data["material typ"] == "Aluminiumplåt" %}
+              ja
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if data["material typ"] in ["Brandmatta", "Brandmatta Black"] %}
+              ja
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td style="text-align: center;">-</td>
+          <td style="text-align: center;">-</td>
+          <td style="text-align: center;">-</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary mb-3">Spara hela bladet</button>
+  </form>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Tillbaka</a>
+  
+  <script>
+    document.getElementById('openExplorerButton').addEventListener('click', function() {
+      document.getElementById('fileInput').click();
+    });
+    document.getElementById('fileInput').addEventListener('change', function() {
+      var fileName = this.files[0] ? this.files[0].name : "";
+      alert("Vald fil: " + fileName);
+      // Här kan du skicka filen via AJAX eller genom att lägga in den i ett formulär
+    });
+    document.getElementById('materialFilter').addEventListener('keyup', function() {
+      var filter = this.value.toLowerCase();
+      var rows = document.querySelectorAll('#materialsTable tbody tr');
+      rows.forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        var rowText = "";
+        cells.forEach(function(cell) {
+          rowText += cell.textContent.toLowerCase() + " ";
+        });
+        row.style.display = rowText.indexOf(filter) > -1 ? "" : "none";
+      });
+    });
+  </script>
+{% endblock %}
